@@ -17,14 +17,48 @@ export default class CreateRoomPage extends Component {
     constructor(props) {
         super(props)
         this.state = {
-            guestCanPause: true
+            guestCanPause: true,
+            votesToSkip: this.defaultVotes,
         }
+
+        this.handleRoomButtonPressed = this.handleRoomButtonPressed.bind(this)
+        this.handleVotesChange = this.handleVotesChange.bind(this)
+        this.handleGuestCanPauseChange = this.handleGuestCanPauseChange.bind(this)
     }
     /* para container spacing é utilizado a notação de 8
     1 = 8, 2 = 16, 3 = 24
     para item o valor no xs significa o tamanho da tela
     no caso 12 é a tela toda e numeros menores serão % desse numer
     12 = 100%, 6 = 50%, 3 = 25% */
+
+    handleVotesChange(e) {
+        this.setState({
+            votesToSkip: e.target.value,
+        })
+    }
+    
+    handleGuestCanPauseChange(e) {
+        this.setState({
+            guestCanPause: e.target.value === "true" ? true : false,
+        })
+    }
+
+    handleRoomButtonPressed() {
+        const requestOptions = {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                votes_to_skip: this.state.votesToSkip,
+                guest_can_pause: this.state.guestCanPause,
+            })
+        }
+        fetch("/api/create/", requestOptions).then(
+            (response) => response.json()
+        ).then(
+            (data) => console.log(data)
+        )
+    }
+
     render() {
         return (
             <Grid container spacing={1}>
@@ -40,7 +74,10 @@ export default class CreateRoomPage extends Component {
                                 Guest Control of Playback State
                             </div>
                         </FormHelperText>
-                        <RadioGroup row default="true">
+                        <RadioGroup
+                            row
+                            defaultValue="true"
+                            onChange={this.handleGuestCanPauseChange}>
                             <FormControlLabel
                                 value="true"
                                 control={<Radio color="primary"/>}
@@ -61,6 +98,7 @@ export default class CreateRoomPage extends Component {
                         <TextField
                             required={true}
                             type="number"
+                            onChange={this.handleVotesChange}
                             defaultValue={this.defaultVotes}
                             inputProps={{
                                 min: 1,
@@ -76,7 +114,7 @@ export default class CreateRoomPage extends Component {
                     </FormControl>
                 </Grid>
                 <Grid item xs={12} align="center">
-                    <Button color="secondary" variant="contained">
+                    <Button color="secondary" variant="contained" onClick={this.handleRoomButtonPressed}>
                         Create a Room
                     </Button>
                 </Grid>
