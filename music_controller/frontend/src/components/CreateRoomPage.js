@@ -1,4 +1,5 @@
 import React, { Component } from "react"
+import axios from "../utils/axios"
 import Button from "@material-ui/core/Button"
 import Grid from "@material-ui/core/Grid"
 import Typography from "@material-ui/core/Typography"
@@ -43,21 +44,15 @@ export default class CreateRoomPage extends Component {
         })
     }
 
-    handleRoomButtonPressed = () => {
-        const requestOptions = {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({
+    handleRoomButtonPressed = async () => {
+        try {
+            const room = {
                 votes_to_skip: this.state.votesToSkip,
                 guest_can_pause: this.state.guestCanPause,
-            })
-        }
-        try {
-            fetch("/api/create/", requestOptions).then(
-                (response) => response.json()
-            ).then(
-                (data) => console.log(data)
-            )
+            }
+            const response = await axios.post( "/api/create/", room)
+            const data = response.data
+            console.log(data)
         } catch (error) {
             console.warn(error)
         }

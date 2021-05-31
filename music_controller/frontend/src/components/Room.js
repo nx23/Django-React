@@ -1,4 +1,5 @@
 import React, { Component } from "react"
+import axios from "../utils/axios"
 
 export default class Room extends Component {
     constructor(props) {
@@ -12,17 +13,16 @@ export default class Room extends Component {
         this.getRoomDetails()
     }
 
-    getRoomDetails = () => {
+    getRoomDetails = async () => {
         try {
-            fetch(`/api/get-room?code=${this.roomCode}`).then(
-                (response) => response.json()
-            ).then(
-                (data) => this.setState({
-                    votes_to_skip: data.votes_to_skip,
-                    guest_can_pause: data.guest_can_pause,
-                    is_host: data.is_host,
-                })
-            )
+            const response = await axios.get(`/api/get-room?code=${this.roomCode}`)
+            const data = response.data
+            console.log(response)
+            this.setState({
+                votes_to_skip: data.votes_to_skip,
+                guest_can_pause: data.guest_can_pause,
+                is_host: data.is_host,
+            })
         } catch (error) {
             console.warn(error)
         }
