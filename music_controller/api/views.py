@@ -1,12 +1,35 @@
 from django.http.response import JsonResponse
 from django.shortcuts import render
 from rest_framework import generics, serializers, status
-from .serializers import RoomSerializer, CreateRoomSerializer
+from .serializers import RoomSerializer, CreateRoomSerializer, UpdateRoomSerializer
 from .models import Room
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
 # Create your views here.
+
+class UpdateRoom(APIView):
+    serializers_class = UpdateRoomSerializer
+    
+    def patch(self, request, format=None):
+        serializer = self.serializers_class(data=request.data)
+        if serializer.is_valid():
+            guest_can_pause = serializer.data.get('guest_can_pause')
+            votes_to_skip = serializer.data.get('votes_to_skip')
+            code = serializer.data.get('code')
+            queryset = Room.objects.filter(code=code)
+            if queryset.exists():
+                room = queryset[0]
+                user_id = self.request.session.session_key
+                if user_id == room.host:
+                    room.guest_can_pause = guest_can_pause
+                    room.votes_to_skip = votes_to_skip
+                    room.save(update_fields=['guest_can_pause', 'votes_to_skip'])
+                    return Response(status=status.HTTP_200_OK)
+                else:
+                    return Response(status=status.HTTP_403_FORBIDDEN)   
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+
 
 class LeaveRoom(APIView):
     def post(self, request, format=None):
@@ -15,11 +38,12 @@ class LeaveRoom(APIView):
             room = queryset[0]
             self.request.session.pop('code', room.code)
             host_id = self.request.session.session_key
-            room_results = Room.objects.filter(host=host_id)
-            if len(room_results) > 0:
-                room = room_results[0]
+            queryset = Room.objects.filter(host=host_id)
+            if queryset.exists():
+                room = queryset[0]
                 room.delete()
         return Response({'Message':'Success'}, status=status.HTTP_200_OK)
+
 
 class UserInRoom(APIView):
     def get(self, request, format=None):
@@ -48,10 +72,10 @@ class GetRoom(APIView):
     def get(self, request, format=None):
         roomCode = request.GET.get(self.lookup_url_kwarg)
         if roomCode != None:
-            room = Room.objects.filter(code=roomCode)
-            if len(room) > 0:
-                data = RoomSerializer(room[0]).data
-                data['is_host'] = self.request.session.session_key == room[0].host
+            queryset = Room.objects.filter(code=roomCode)
+            if queryset.exists():
+                data = RoomSerializer(queryset[0]).data
+                data['is_host'] = self.request.session.session_key == queryset[0].host
                 return Response(data, status=status.HTTP_200_OK)
             return Response({'Room Not Found': 'Invalid Room Code'}, status=status.HTTP_404_NOT_FOUND)
         return Response({'Bad Request': 'Code parameter not found in request'}, status=status.HTTP_400_BAD_REQUEST)
