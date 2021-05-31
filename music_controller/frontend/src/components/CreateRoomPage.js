@@ -1,7 +1,7 @@
 import React, { Component } from "react"
 import axios from "../utils/axios"
 import { Button, Grid, Typography, TextField, FormHelperText, FormControl, Radio, RadioGroup, FormControlLabel } from "@material-ui/core"
-import { Link } from "react-router-dom"
+import { Link, useHistory } from "react-router-dom"
 
 export default class CreateRoomPage extends Component {
     defaultVotes = 2
@@ -11,6 +11,7 @@ export default class CreateRoomPage extends Component {
         this.state = {
             guestCanPause: true,
             votesToSkip: this.defaultVotes,
+            roomCode: null
         }
 
         this.handleRoomButtonPressed = this.handleRoomButtonPressed.bind(this)
@@ -41,9 +42,9 @@ export default class CreateRoomPage extends Component {
                 votes_to_skip: this.state.votesToSkip,
                 guest_can_pause: this.state.guestCanPause,
             }
-            const response = await axios.post( "/api/create/", room)
+            const response = await axios.post("/api/create/", room)
             const data = response.data
-            console.log(data)
+            this.props.history.push(`/room/${data.code}`)
         } catch (error) {
             console.warn(error)
         }
@@ -93,7 +94,6 @@ export default class CreateRoomPage extends Component {
                             inputProps={{
                                 min: 1,
                                 style: { textAlign:"center" },
-
                             }}
                         />
                         <FormHelperText>
@@ -104,12 +104,12 @@ export default class CreateRoomPage extends Component {
                     </FormControl>
                 </Grid>
                 <Grid item xs={12} align="center">
-                    <Button color="secondary" variant="contained" onClick={this.handleRoomButtonPressed}>
+                    <Button color="secondary" variant="contained" onClick={ this.handleRoomButtonPressed }>
                         Create a Room
                     </Button>
                 </Grid>
                 <Grid item xs={12} align="center">
-                    <Button color="primary" variant="contained" to="/" component={Link}>
+                    <Button color="primary" variant="contained" to="/" component={ Link }>
                         Back
                     </Button>
                 </Grid>

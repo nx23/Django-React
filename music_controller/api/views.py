@@ -1,3 +1,4 @@
+from django.http.response import JsonResponse
 from django.shortcuts import render
 from rest_framework import generics, serializers, status
 from .serializers import RoomSerializer, CreateRoomSerializer
@@ -6,6 +7,34 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 
 # Create your views here.
+
+class LeaveRoom(APIView):
+    def post(self, request, format=None):
+        queryset = Room.objects.filter(host=self.request.session.session_key)
+        if queryset.exists():
+            room = queryset[0]
+            self.request.session.pop('code', room.code)
+            host_id = self.request.session.session_key
+            room_results = Room.objects.filter(host=host_id)
+            if len(room_results) > 0:
+                room = room_results[0]
+                room.delete()
+        return Response({'Message':'Success'}, status=status.HTTP_200_OK)
+
+class UserInRoom(APIView):
+    def get(self, request, format=None):
+        if not self.request.session.exists(self.request.session.session_key):
+            self.request.session.create()
+        queryset = Room.objects.filter(host=self.request.session.session_key)
+        if queryset.exists():
+            room = queryset[0]
+            data = {
+                "roomCode": room.code,
+            }
+            return JsonResponse(data, status=status.HTTP_200_OK)
+        else:
+            return Response(status=status.HTTP_200_OK)
+
 
 class RoomView(generics.ListAPIView):
     queryset = Room.objects.all()
@@ -17,9 +46,9 @@ class GetRoom(APIView):
     lookup_url_kwarg = 'code'
 
     def get(self, request, format=None):
-        code = request.GET.get(self.lookup_url_kwarg)
-        if code != None:
-            room = Room.objects.filter(code=code)
+        roomCode = request.GET.get(self.lookup_url_kwarg)
+        if roomCode != None:
+            room = Room.objects.filter(code=roomCode)
             if len(room) > 0:
                 data = RoomSerializer(room[0]).data
                 data['is_host'] = self.request.session.session_key == room[0].host

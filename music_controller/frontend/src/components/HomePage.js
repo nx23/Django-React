@@ -4,10 +4,26 @@ import CreateRoomPage from "./CreateRoomPage"
 import Room from "./Room"
 import { Grid, Button, ButtonGroup, Typography } from "@material-ui/core"
 import { BrowserRouter as Router, Switch, Route, Link, Redirect } from "react-router-dom"
+import axios from "axios"
 
 export default class HomePage extends Component {
     constructor(props) {
         super(props)
+        this.state = {
+            roomCode: null,
+        }
+    }
+
+    componentDidMount = async () => {
+        try{
+            const response = await axios.get("/api/user-in-room/")
+            const data = response.data
+            this.setState({
+                roomCode: data.roomCode
+            })
+        } catch (error) {
+            console.warn(error)
+        }
     }
 
     renderHomePage = () => {
@@ -35,7 +51,9 @@ export default class HomePage extends Component {
     render = () => {
         return (<Router>
             <Switch>
-                <Route exact path='/' component={this.renderHomePage} />
+                <Route exact path='/' render={ () => {
+                    return this.state.roomCode ? (<Redirect to={`/room/${this.state.roomCode}`}/>) : this.renderHomePage()
+                } } />
                 <Route path='/join/' component={RoomJoinPage} />
                 <Route path='/create/' component={CreateRoomPage} />
                 <Route path='/room/:roomCode' component={Room} />
