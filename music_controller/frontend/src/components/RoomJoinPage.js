@@ -5,7 +5,7 @@ export default class RoomJoinPage extends Component {
         super(props)
     }
 
-    render() {
+    render = () => {
         return <p>This is my RoomJoinPage.</p>
     }
 }

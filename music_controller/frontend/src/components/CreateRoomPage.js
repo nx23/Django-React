@@ -31,19 +31,19 @@ export default class CreateRoomPage extends Component {
     no caso 12 é a tela toda e numeros menores serão % desse numer
     12 = 100%, 6 = 50%, 3 = 25% */
 
-    handleVotesChange(e) {
+    handleVotesChange = (e) => {
         this.setState({
             votesToSkip: e.target.value,
         })
     }
     
-    handleGuestCanPauseChange(e) {
+    handleGuestCanPauseChange = (e) => {
         this.setState({
             guestCanPause: e.target.value === "true" ? true : false,
         })
     }
 
-    handleRoomButtonPressed() {
+    handleRoomButtonPressed = () => {
         const requestOptions = {
             method: "POST",
             headers: {"Content-Type": "application/json"},
@@ -52,14 +52,18 @@ export default class CreateRoomPage extends Component {
                 guest_can_pause: this.state.guestCanPause,
             })
         }
-        fetch("/api/create/", requestOptions).then(
-            (response) => response.json()
-        ).then(
-            (data) => console.log(data)
-        )
+        try {
+            fetch("/api/create/", requestOptions).then(
+                (response) => response.json()
+            ).then(
+                (data) => console.log(data)
+            )
+        } catch (error) {
+            console.warn(error)
+        }
     }
 
-    render() {
+    render = () => {
         return (
             <Grid container spacing={1}>
                 <Grid item xs={12} align="center">

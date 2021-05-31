@@ -9,7 +9,7 @@ export default class HomePage extends Component {
         super(props)
     }
 
-    render() {
+    render = () => {
         return (<Router>
             <Switch>
                 <Route exact path='/'><p>This is the HomePage</p></Route>
